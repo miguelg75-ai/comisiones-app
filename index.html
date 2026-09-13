@@ -237,10 +237,6 @@
       <p class="status-msg" id="cryptoStatus" style="margin-bottom:14px;"></p>
       <h2>Cambiar clave</h2>
       <label class="field">
-        <span>CLAVE ACTUAL</span>
-        <input id="currentPinInput" type="text" inputmode="numeric" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="pin-mask" />
-      </label>
-      <label class="field">
         <span>CLAVE NUEVA</span>
         <input id="newPinInput" type="text" inputmode="numeric" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="pin-mask" />
       </label>
@@ -258,10 +254,6 @@
 
       <h2 style="margin-top:20px;">Clave de emergencia</h2>
       <p class="hint">Si alguien te obliga a abrir la app, da esta clave en vez de la real: se abrirá un juego sencillo y tus datos nunca se mostrarán ni se cargan. Debe ser diferente de tu clave real.</p>
-      <label class="field">
-        <span>CLAVE ACTUAL (para confirmar)</span>
-        <input id="duressCurrentPinInput" type="text" inputmode="numeric" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="pin-mask" />
-      </label>
       <label class="field">
         <span>CLAVE DE EMERGENCIA</span>
         <input id="duressPinInput" type="text" inputmode="numeric" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="pin-mask" />
@@ -1359,16 +1351,10 @@ $("saveApiKeyBtn").addEventListener("click", async () => {
 });
 
 $("saveDuressBtn").addEventListener("click", async () => {
-  const cur = $("duressCurrentPinInput").value.trim();
   const val = $("duressPinInput").value.trim();
   const status = $("duressStatus");
   status.className = "status-msg";
 
-  if (cur !== currentPin){
-    status.className = "status-msg error";
-    status.textContent = "La clave actual no es correcta.";
-    return;
-  }
   if (!val){
     status.className = "status-msg error";
     status.textContent = "Escribe la clave de emergencia.";
@@ -1384,7 +1370,6 @@ $("saveDuressBtn").addEventListener("click", async () => {
     duressPin = val;
     status.className = "status-msg ok";
     status.textContent = "Clave de emergencia guardada.";
-    $("duressCurrentPinInput").value = "";
     $("duressPinInput").value = "";
   }catch(e){
     status.className = "status-msg error";
@@ -1402,16 +1387,10 @@ $("ajustesBtn").addEventListener("click", () => {
 });
 
 $("savePinBtn").addEventListener("click", async () => {
-  const cur = $("currentPinInput").value.trim();
   const nw = $("newPinInput").value.trim();
   const status = $("pinChangeStatus");
   status.className = "status-msg";
 
-  if (cur !== currentPin){
-    status.className = "status-msg error";
-    status.textContent = "La clave actual no es correcta.";
-    return;
-  }
   if (!nw){
     status.className = "status-msg error";
     status.textContent = "Escribe la nueva clave.";
@@ -1425,7 +1404,6 @@ $("savePinBtn").addEventListener("click", async () => {
     await storage.set(FAIL_KEY, "0", false);
     status.className = "status-msg ok";
     status.textContent = "Clave actualizada.";
-    $("currentPinInput").value = "";
     $("newPinInput").value = "";
   }catch(e){
     status.className = "status-msg error";
