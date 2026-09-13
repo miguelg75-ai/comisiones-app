@@ -369,6 +369,27 @@
 </datalist>
 
 <script>
+// ---------- Almacenamiento: window.storage dentro del chat, localStorage fuera ----------
+const storage = (window.storage) ? window.storage : {
+  async get(key, shared){
+    const raw = localStorage.getItem(key);
+    if (raw === null || raw === undefined) return null;
+    return { key, value: raw, shared: !!shared };
+  },
+  async set(key, value, shared){
+    localStorage.setItem(key, value);
+    return { key, value, shared: !!shared };
+  },
+  async delete(key, shared){
+    localStorage.removeItem(key);
+    return { key, deleted: true, shared: !!shared };
+  },
+  async list(prefix, shared){
+    const keys = Object.keys(localStorage).filter(k => !prefix || k.startsWith(prefix));
+    return { keys, prefix, shared: !!shared };
+  }
+};
+
 const DEFAULT_COMPANIES = ["KINGMAN BANORTE","KINGMAN BANCOMER","MINIMAL","GEMIHAS","BARBOSA","MIQUELA SANTANDER","MIQUELA BANCOMER","SANTANDER PERSONAL"];
 const STORAGE_KEY = "semana_actual";
 const API_KEY_STORAGE = "anthropic_api_key";
@@ -449,7 +470,7 @@ async function decryptWithPin(pin, blobStr){
 // ---------- Persistencia ----------
 async function loadState(){
   try{
-    const res = await window.storage.get(STORAGE_KEY, false);
+    const res = await storage.get(STORAGE_KEY, false);
     if (res && res.value){
       let saved = null;
       let blob = null;
@@ -498,7 +519,7 @@ function renderCryptoStatus(){
 
 async function loadApiKey(){
   try{
-    const res = await window.storage.get(API_KEY_STORAGE, false);
+    const res = await storage.get(API_KEY_STORAGE, false);
     apiKey = res ? res.value : null;
   }catch(e){
     apiKey = null;
@@ -516,7 +537,7 @@ async function saveState(){
       companies: state.companies
     });
     const toStore = CRYPTO_AVAILABLE ? await encryptWithPin(currentPin, json) : json;
-    await window.storage.set(STORAGE_KEY, toStore, false);
+    await storage.set(STORAGE_KEY, toStore, false);
   }catch(e){
     console.error("No se pudo guardar el acumulado:", e);
   }
@@ -1130,7 +1151,7 @@ let failCount = 0;
 async function wipeAllData(){
   const keys = [STORAGE_KEY, PIN_KEY, API_KEY_STORAGE, FAIL_KEY];
   for (const k of keys){
-    try{ await window.storage.delete(k, false); }catch(e){ /* puede que no exista */ }
+    try{ await storage.delete(k, false); }catch(e){ /* puede que no exista */ }
   }
 
   state = {
@@ -1214,19 +1235,19 @@ function showDecoyGame(){
 
 async function initLock(){
   try{
-    const res = await window.storage.get(PIN_KEY, false);
+    const res = await storage.get(PIN_KEY, false);
     currentPin = res ? res.value : null;
   }catch(e){
     currentPin = null;
   }
   try{
-    const res = await window.storage.get(FAIL_KEY, false);
+    const res = await storage.get(FAIL_KEY, false);
     failCount = res ? parseInt(res.value, 10) || 0 : 0;
   }catch(e){
     failCount = 0;
   }
   try{
-    const res = await window.storage.get(DURESS_KEY, false);
+    const res = await storage.get(DURESS_KEY, false);
     duressPin = res ? res.value : null;
   }catch(e){
     duressPin = null;
@@ -1253,7 +1274,7 @@ async function initLock(){
 
     if (!currentPin){
       try{
-        await window.storage.set(PIN_KEY, val, false);
+        await storage.set(PIN_KEY, val, false);
         currentPin = val;
         overlay.style.display = "none";
         pinSet = true;
@@ -1266,7 +1287,7 @@ async function initLock(){
 
     if (val === currentPin){
       failCount = 0;
-      try{ await window.storage.set(FAIL_KEY, "0", false); }catch(e){}
+      try{ await storage.set(FAIL_KEY, "0", false); }catch(e){}
       overlay.style.display = "none";
       pinSet = true;
       input.value = "";
@@ -1280,7 +1301,7 @@ async function initLock(){
     }
 
     failCount++;
-    try{ await window.storage.set(FAIL_KEY, String(failCount), false); }catch(e){}
+    try{ await storage.set(FAIL_KEY, String(failCount), false); }catch(e){}
 
     if (failCount >= MAX_INTENTOS){
       await wipeAllData();
@@ -1320,7 +1341,7 @@ $("saveApiKeyBtn").addEventListener("click", async () => {
     return;
   }
   try{
-    await window.storage.set(API_KEY_STORAGE, val, false);
+    await storage.set(API_KEY_STORAGE, val, false);
     apiKey = val;
     $("apiKeyInput").value = "";
     status.className = "status-msg ok";
@@ -1353,7 +1374,7 @@ $("saveDuressBtn").addEventListener("click", async () => {
     return;
   }
   try{
-    await window.storage.set(DURESS_KEY, val, false);
+    await storage.set(DURESS_KEY, val, false);
     duressPin = val;
     status.className = "status-msg ok";
     status.textContent = "Clave de emergencia guardada.";
@@ -1391,11 +1412,11 @@ $("savePinBtn").addEventListener("click", async () => {
     return;
   }
   try{
-    await window.storage.set(PIN_KEY, nw, false);
+    await storage.set(PIN_KEY, nw, false);
     currentPin = nw;
     await saveState(); // re-cifra los datos ya en memoria con la clave nueva
     failCount = 0;
-    await window.storage.set(FAIL_KEY, "0", false);
+    await storage.set(FAIL_KEY, "0", false);
     status.className = "status-msg ok";
     status.textContent = "Clave actualizada.";
     $("currentPinInput").value = "";
