@@ -42,6 +42,7 @@
   }
   .lock-box{width:100%;max-width:280px;text-align:center;}
   .lock-title{font-family:'Spectral',serif;font-size:18px;margin:0 0 16px;color:var(--ink);}
+  .pin-mask{-webkit-text-security:disc;text-security:disc;}
   #lockInput{
     width:100%;text-align:center;font-size:24px;letter-spacing:8px;padding:12px;
     border:1px solid var(--rule-strong);border-radius:4px;margin-bottom:14px;
@@ -188,7 +189,7 @@
 <div class="lock-overlay" id="lockOverlay">
   <div class="lock-box">
     <p class="lock-title" id="lockTitle">Ingresa tu clave</p>
-    <input id="lockInput" type="password" inputmode="numeric" maxlength="8" placeholder="••••" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+    <input id="lockInput" type="text" inputmode="numeric" maxlength="8" placeholder="••••" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="pin-mask" />
     <button id="lockBtn" class="primary-btn">Entrar</button>
     <p class="status-msg error" id="lockError"></p>
   </div>
@@ -237,11 +238,11 @@
       <h2>Cambiar clave</h2>
       <label class="field">
         <span>CLAVE ACTUAL</span>
-        <input id="currentPinInput" type="password" inputmode="numeric" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+        <input id="currentPinInput" type="text" inputmode="numeric" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="pin-mask" />
       </label>
       <label class="field">
         <span>CLAVE NUEVA</span>
-        <input id="newPinInput" type="password" inputmode="numeric" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+        <input id="newPinInput" type="text" inputmode="numeric" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="pin-mask" />
       </label>
       <button id="savePinBtn" class="primary-btn">Guardar nueva clave</button>
       <p class="status-msg" id="pinChangeStatus"></p>
@@ -259,11 +260,11 @@
       <p class="hint">Si alguien te obliga a abrir la app, da esta clave en vez de la real: se abrirá un juego sencillo y tus datos nunca se mostrarán ni se cargan. Debe ser diferente de tu clave real.</p>
       <label class="field">
         <span>CLAVE ACTUAL (para confirmar)</span>
-        <input id="duressCurrentPinInput" type="password" inputmode="numeric" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+        <input id="duressCurrentPinInput" type="text" inputmode="numeric" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="pin-mask" />
       </label>
       <label class="field">
         <span>CLAVE DE EMERGENCIA</span>
-        <input id="duressPinInput" type="password" inputmode="numeric" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+        <input id="duressPinInput" type="text" inputmode="numeric" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="pin-mask" />
       </label>
       <button id="saveDuressBtn" class="primary-btn">Guardar clave de emergencia</button>
       <p class="status-msg" id="duressStatus"></p>
