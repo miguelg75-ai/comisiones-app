@@ -1174,23 +1174,64 @@ async function wipeAllData(){
 }
 
 function showDecoyGame(){
-  // Nunca se llama a loadState() en ningún juego de abajo — los datos reales
+  // Nunca se llama a loadState() en ningún juego de este menú — los datos reales
   // jamás se cargan ni se muestran mientras el señuelo está activo.
-  const juegos = [renderDecoyTicTacToe, renderDecoyGuessNumber, renderDecoyRockPaperScissors];
-  const elegido = juegos[Math.floor(Math.random() * juegos.length)];
-  elegido();
+  renderDecoyMenu();
+}
+
+const DECOY_GAMES = [
+  { id: "ttt", nombre: "Tres en raya" },
+  { id: "gn", nombre: "Adivina el número" },
+  { id: "rps", nombre: "Piedra, papel o tijeras" },
+  { id: "mem", nombre: "Memorama" },
+  { id: "react", nombre: "Reacción rápida" },
+  { id: "math", nombre: "Suma rápida" }
+];
+
+function renderDecoyMenu(){
+  const overlay = $("lockOverlay");
+  overlay.innerHTML = `
+    <div style="width:100%;max-width:300px;text-align:center;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+      <p style="font-size:20px;font-weight:600;color:#333;margin:0 0 18px;">Juegos</p>
+      <div id="decoyMenuList" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+  `;
+  const list = document.getElementById("decoyMenuList");
+  list.innerHTML = DECOY_GAMES.map(g => `<button data-g="${g.id}" style="background:#f2f2f2;border:none;border-radius:8px;padding:14px;font-size:14px;color:#333;text-align:left;cursor:pointer;">${g.nombre}</button>`).join("");
+  list.querySelectorAll("[data-g]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const fns = {
+        ttt: renderDecoyTicTacToe,
+        gn: renderDecoyGuessNumber,
+        rps: renderDecoyRockPaperScissors,
+        mem: renderDecoyMemory,
+        react: renderDecoyReaction,
+        math: renderDecoyMath
+      };
+      fns[btn.dataset.g]();
+    });
+  });
+}
+
+function decoyBackButton(){
+  return `<button id="decoyBack" style="background:none;border:none;color:#999;font-size:12px;margin-bottom:10px;cursor:pointer;padding:0;">← Juegos</button>`;
+}
+function wireDecoyBack(){
+  document.getElementById("decoyBack").addEventListener("click", renderDecoyMenu);
 }
 
 function renderDecoyTicTacToe(){
   const overlay = $("lockOverlay");
   overlay.innerHTML = `
     <div style="width:100%;max-width:300px;text-align:center;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+      ${decoyBackButton()}
       <p style="font-size:19px;font-weight:600;color:#333;margin:0 0 4px;">Tres en raya</p>
       <p id="tttStatus" style="font-size:13px;color:#888;margin:0 0 16px;">Turno: X</p>
       <div id="tttBoard" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:240px;margin:0 auto 18px;"></div>
       <button id="tttReset" style="background:#333;color:#fff;border:none;border-radius:6px;padding:10px 20px;font-size:13px;">Reiniciar</button>
     </div>
   `;
+  wireDecoyBack();
 
   let board = Array(9).fill(null);
   let turn = "X";
@@ -1240,6 +1281,7 @@ function renderDecoyGuessNumber(){
   const overlay = $("lockOverlay");
   overlay.innerHTML = `
     <div style="width:100%;max-width:300px;text-align:center;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+      ${decoyBackButton()}
       <p style="font-size:19px;font-weight:600;color:#333;margin:0 0 4px;">Adivina el número</p>
       <p id="gnStatus" style="font-size:13px;color:#888;margin:0 0 16px;">Pensé un número del 1 al 100</p>
       <input id="gnInput" type="number" min="1" max="100" style="width:100px;text-align:center;font-size:20px;padding:8px;border:1px solid #ddd;border-radius:6px;margin-bottom:12px;" />
@@ -1248,6 +1290,7 @@ function renderDecoyGuessNumber(){
       <button id="gnReset" style="background:#eee;color:#333;border:none;border-radius:6px;padding:10px 16px;font-size:13px;margin-left:8px;">Reiniciar</button>
     </div>
   `;
+  wireDecoyBack();
 
   let secret = Math.floor(Math.random() * 100) + 1;
   let tries = 0;
@@ -1279,6 +1322,7 @@ function renderDecoyRockPaperScissors(){
   const overlay = $("lockOverlay");
   overlay.innerHTML = `
     <div style="width:100%;max-width:300px;text-align:center;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+      ${decoyBackButton()}
       <p style="font-size:19px;font-weight:600;color:#333;margin:0 0 4px;">Piedra, papel o tijeras</p>
       <p id="rpsStatus" style="font-size:13px;color:#888;margin:0 0 16px;">Elige tu jugada</p>
       <div style="display:flex;gap:10px;justify-content:center;">
@@ -1289,6 +1333,7 @@ function renderDecoyRockPaperScissors(){
       <p id="rpsScore" style="font-size:12px;color:#999;margin-top:16px;">Tú: 0 · Máquina: 0</p>
     </div>
   `;
+  wireDecoyBack();
 
   const score = { yo: 0, maquina: 0 };
   const options = ["piedra", "papel", "tijeras"];
@@ -1318,6 +1363,163 @@ function renderDecoyRockPaperScissors(){
       scoreEl.textContent = `Tú: ${score.yo} · Máquina: ${score.maquina}`;
     });
   });
+}
+
+function renderDecoyMemory(){
+  const overlay = $("lockOverlay");
+  overlay.innerHTML = `
+    <div style="width:100%;max-width:300px;text-align:center;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+      ${decoyBackButton()}
+      <p style="font-size:19px;font-weight:600;color:#333;margin:0 0 4px;">Memorama</p>
+      <p id="memStatus" style="font-size:13px;color:#888;margin:0 0 14px;">Encuentra las parejas</p>
+      <div id="memBoard" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:260px;margin:0 auto 16px;"></div>
+      <button id="memReset" style="background:#333;color:#fff;border:none;border-radius:6px;padding:10px 20px;font-size:13px;">Reiniciar</button>
+    </div>
+  `;
+  wireDecoyBack();
+
+  const emojiSet = ["🍎", "🍋", "🍇", "🍉", "🍒", "🍍", "🍑", "🥝"].slice(0, 6);
+  let cards, flipped, matchedCount, lock;
+  const boardEl = document.getElementById("memBoard");
+  const statusEl = document.getElementById("memStatus");
+
+  function shuffle(arr){
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function setup(){
+    cards = shuffle([...emojiSet, ...emojiSet]).map((emoji, i) => ({ id: i, emoji, flipped: false, matched: false }));
+    flipped = [];
+    matchedCount = 0;
+    lock = false;
+    statusEl.textContent = "Encuentra las parejas";
+    draw();
+  }
+
+  function draw(){
+    boardEl.innerHTML = cards.map(c => `<div data-i="${c.id}" style="aspect-ratio:1;background:${c.matched ? "#d1fae5" : "#f2f2f2"};border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;">${(c.flipped || c.matched) ? c.emoji : ""}</div>`).join("");
+    boardEl.querySelectorAll("[data-i]").forEach(cell => {
+      cell.addEventListener("click", () => {
+        const i = parseInt(cell.dataset.i);
+        const card = cards[i];
+        if (lock || card.flipped || card.matched) return;
+        card.flipped = true;
+        flipped.push(card);
+        draw();
+        if (flipped.length === 2){
+          lock = true;
+          setTimeout(() => {
+            const [a, b] = flipped;
+            if (a.emoji === b.emoji){
+              a.matched = true; b.matched = true;
+              matchedCount++;
+              if (matchedCount === emojiSet.length) statusEl.textContent = "¡Completado!";
+            } else {
+              a.flipped = false; b.flipped = false;
+            }
+            flipped = [];
+            lock = false;
+            draw();
+          }, 700);
+        }
+      });
+    });
+  }
+
+  document.getElementById("memReset").addEventListener("click", setup);
+  setup();
+}
+
+function renderDecoyReaction(){
+  const overlay = $("lockOverlay");
+  overlay.innerHTML = `
+    <div style="width:100%;max-width:300px;text-align:center;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+      ${decoyBackButton()}
+      <p style="font-size:19px;font-weight:600;color:#333;margin:0 0 4px;">Reacción rápida</p>
+      <p id="reactStatus" style="font-size:13px;color:#888;margin:0 0 16px;">Toca el cuadro en cuanto cambie a verde</p>
+      <div id="reactBox" style="width:220px;height:140px;margin:0 auto;border-radius:10px;background:#e5e5e5;display:flex;align-items:center;justify-content:center;font-size:14px;color:#999;cursor:pointer;">Toca para empezar</div>
+    </div>
+  `;
+  wireDecoyBack();
+
+  const box = document.getElementById("reactBox");
+  const statusEl = document.getElementById("reactStatus");
+  let state = "idle"; // idle -> waiting -> ready
+  let timeoutId, startTime;
+
+  box.addEventListener("click", () => {
+    if (state === "idle" || state === "done"){
+      state = "waiting";
+      box.style.background = "#e5e5e5";
+      box.textContent = "Espera...";
+      statusEl.textContent = "No toques todavía";
+      const delay = 1000 + Math.random() * 2500;
+      timeoutId = setTimeout(() => {
+        state = "ready";
+        box.style.background = "#22c55e";
+        box.textContent = "¡Ahora!";
+        startTime = Date.now();
+      }, delay);
+    } else if (state === "waiting"){
+      clearTimeout(timeoutId);
+      state = "done";
+      box.style.background = "#ef4444";
+      box.textContent = "Muy pronto";
+      statusEl.textContent = "Tocaste antes de tiempo — intenta otra vez";
+    } else if (state === "ready"){
+      const ms = Date.now() - startTime;
+      state = "done";
+      box.style.background = "#e5e5e5";
+      box.textContent = "Toca para intentar otra vez";
+      statusEl.textContent = `Tu tiempo: ${ms} ms`;
+    }
+  });
+}
+
+function renderDecoyMath(){
+  const overlay = $("lockOverlay");
+  overlay.innerHTML = `
+    <div style="width:100%;max-width:300px;text-align:center;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+      ${decoyBackButton()}
+      <p style="font-size:19px;font-weight:600;color:#333;margin:0 0 4px;">Suma rápida</p>
+      <p id="mathQ" style="font-size:26px;font-weight:700;color:#333;margin:16px 0;">?</p>
+      <input id="mathInput" type="number" style="width:110px;text-align:center;font-size:18px;padding:8px;border:1px solid #ddd;border-radius:6px;margin-bottom:12px;" />
+      <br/>
+      <button id="mathCheck" style="background:#333;color:#fff;border:none;border-radius:6px;padding:10px 20px;font-size:13px;">Responder</button>
+      <p id="mathScore" style="font-size:12px;color:#999;margin-top:14px;">Aciertos: 0 · Fallos: 0</p>
+    </div>
+  `;
+  wireDecoyBack();
+
+  let a, b, op, score = { ok: 0, bad: 0 };
+  const qEl = document.getElementById("mathQ");
+  const inputEl = document.getElementById("mathInput");
+  const scoreEl = document.getElementById("mathScore");
+
+  function next(){
+    a = Math.floor(Math.random() * 20) + 1;
+    b = Math.floor(Math.random() * 20) + 1;
+    op = Math.random() < 0.5 ? "+" : "-";
+    if (op === "-" && b > a) [a, b] = [b, a];
+    qEl.textContent = `${a} ${op} ${b}`;
+    inputEl.value = "";
+    inputEl.focus();
+  }
+
+  document.getElementById("mathCheck").addEventListener("click", () => {
+    const val = parseInt(inputEl.value);
+    const correct = op === "+" ? a + b : a - b;
+    if (val === correct) score.ok++; else score.bad++;
+    scoreEl.textContent = `Aciertos: ${score.ok} · Fallos: ${score.bad}`;
+    next();
+  });
+
+  next();
 }
 
 async function initLock(){
