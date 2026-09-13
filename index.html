@@ -370,18 +370,22 @@
 
 <script>
 // ---------- Almacenamiento: window.storage dentro del chat, localStorage fuera ----------
-const storage = (window.storage) ? window.storage : {
+const storage = (window.storage && typeof window.storage.get === "function") ? window.storage : {
   async get(key, shared){
-    const raw = localStorage.getItem(key);
+    let raw;
+    try{ raw = localStorage.getItem(key); }
+    catch(err){ throw new Error("localStorage no disponible: " + (err && err.message ? err.message : err)); }
     if (raw === null || raw === undefined) return null;
     return { key, value: raw, shared: !!shared };
   },
   async set(key, value, shared){
-    localStorage.setItem(key, value);
+    try{ localStorage.setItem(key, value); }
+    catch(err){ throw new Error("localStorage no disponible: " + (err && err.message ? err.message : err)); }
     return { key, value, shared: !!shared };
   },
   async delete(key, shared){
-    localStorage.removeItem(key);
+    try{ localStorage.removeItem(key); }
+    catch(err){ throw new Error("localStorage no disponible: " + (err && err.message ? err.message : err)); }
     return { key, deleted: true, shared: !!shared };
   },
   async list(prefix, shared){
@@ -1280,7 +1284,8 @@ async function initLock(){
         pinSet = true;
         loadState();
       }catch(e){
-        err.textContent = "No se pudo guardar la clave. Intenta de nuevo.";
+        console.error(e);
+        err.textContent = "No se pudo guardar la clave: " + (e && e.message ? e.message : String(e));
       }
       return;
     }
