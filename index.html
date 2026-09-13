@@ -1174,8 +1174,14 @@ async function wipeAllData(){
 }
 
 function showDecoyGame(){
-  // Reemplaza TODO el contenido del overlay — nunca se llama a loadState(),
-  // así que los datos reales jamás se cargan ni se muestran.
+  // Nunca se llama a loadState() en ningún juego de abajo — los datos reales
+  // jamás se cargan ni se muestran mientras el señuelo está activo.
+  const juegos = [renderDecoyTicTacToe, renderDecoyGuessNumber, renderDecoyRockPaperScissors];
+  const elegido = juegos[Math.floor(Math.random() * juegos.length)];
+  elegido();
+}
+
+function renderDecoyTicTacToe(){
   const overlay = $("lockOverlay");
   overlay.innerHTML = `
     <div style="width:100%;max-width:300px;text-align:center;font-family:-apple-system,Helvetica,Arial,sans-serif;">
@@ -1228,6 +1234,90 @@ function showDecoyGame(){
   });
 
   draw();
+}
+
+function renderDecoyGuessNumber(){
+  const overlay = $("lockOverlay");
+  overlay.innerHTML = `
+    <div style="width:100%;max-width:300px;text-align:center;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+      <p style="font-size:19px;font-weight:600;color:#333;margin:0 0 4px;">Adivina el número</p>
+      <p id="gnStatus" style="font-size:13px;color:#888;margin:0 0 16px;">Pensé un número del 1 al 100</p>
+      <input id="gnInput" type="number" min="1" max="100" style="width:100px;text-align:center;font-size:20px;padding:8px;border:1px solid #ddd;border-radius:6px;margin-bottom:12px;" />
+      <br/>
+      <button id="gnGuess" style="background:#333;color:#fff;border:none;border-radius:6px;padding:10px 20px;font-size:13px;">Adivinar</button>
+      <button id="gnReset" style="background:#eee;color:#333;border:none;border-radius:6px;padding:10px 16px;font-size:13px;margin-left:8px;">Reiniciar</button>
+    </div>
+  `;
+
+  let secret = Math.floor(Math.random() * 100) + 1;
+  let tries = 0;
+  const statusEl = document.getElementById("gnStatus");
+  const inputEl = document.getElementById("gnInput");
+
+  document.getElementById("gnGuess").addEventListener("click", () => {
+    const guess = parseInt(inputEl.value);
+    if (!guess) return;
+    tries++;
+    if (guess === secret){
+      statusEl.textContent = `¡Correcto! Era ${secret}. Lo lograste en ${tries} intento(s).`;
+    } else if (guess < secret){
+      statusEl.textContent = "Más alto...";
+    } else {
+      statusEl.textContent = "Más bajo...";
+    }
+  });
+
+  document.getElementById("gnReset").addEventListener("click", () => {
+    secret = Math.floor(Math.random() * 100) + 1;
+    tries = 0;
+    statusEl.textContent = "Pensé un número del 1 al 100";
+    inputEl.value = "";
+  });
+}
+
+function renderDecoyRockPaperScissors(){
+  const overlay = $("lockOverlay");
+  overlay.innerHTML = `
+    <div style="width:100%;max-width:300px;text-align:center;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+      <p style="font-size:19px;font-weight:600;color:#333;margin:0 0 4px;">Piedra, papel o tijeras</p>
+      <p id="rpsStatus" style="font-size:13px;color:#888;margin:0 0 16px;">Elige tu jugada</p>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button data-c="piedra" style="font-size:26px;padding:12px 16px;border-radius:8px;border:none;background:#f2f2f2;">🪨</button>
+        <button data-c="papel" style="font-size:26px;padding:12px 16px;border-radius:8px;border:none;background:#f2f2f2;">📄</button>
+        <button data-c="tijeras" style="font-size:26px;padding:12px 16px;border-radius:8px;border:none;background:#f2f2f2;">✂️</button>
+      </div>
+      <p id="rpsScore" style="font-size:12px;color:#999;margin-top:16px;">Tú: 0 · Máquina: 0</p>
+    </div>
+  `;
+
+  const score = { yo: 0, maquina: 0 };
+  const options = ["piedra", "papel", "tijeras"];
+  const emojis = { piedra: "🪨", papel: "📄", tijeras: "✂️" };
+  const statusEl = document.getElementById("rpsStatus");
+  const scoreEl = document.getElementById("rpsScore");
+
+  document.querySelectorAll("[data-c]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const mine = btn.dataset.c;
+      const cpu = options[Math.floor(Math.random() * 3)];
+      let result;
+      if (mine === cpu){
+        result = "Empate";
+      } else if (
+        (mine === "piedra" && cpu === "tijeras") ||
+        (mine === "papel" && cpu === "piedra") ||
+        (mine === "tijeras" && cpu === "papel")
+      ){
+        result = "¡Ganaste!";
+        score.yo++;
+      } else {
+        result = "Perdiste";
+        score.maquina++;
+      }
+      statusEl.textContent = `Tú: ${emojis[mine]}  Máquina: ${emojis[cpu]} — ${result}`;
+      scoreEl.textContent = `Tú: ${score.yo} · Máquina: ${score.maquina}`;
+    });
+  });
 }
 
 async function initLock(){
